@@ -1,37 +1,61 @@
-from flask import Flask, render_template
+#!/usr/bin/env python3
+"""
+Basic calendar front end.
+"""
+
 import datetime
+from flask import Flask, render_template
 
 from kalendar import Kalendar
 
-app = Flask(__name__)
+app = Flask(__name__)  # pylint: disable=invalid-name
+
 
 @app.route('/')
-def hello_world():
+def main():
+    """
+    Return main page.
+    """
     return 'Hello, World!'
+
 
 @app.route('/cal')
 def cal():
-    cal = Kalendar()
-    cal.addNow("test1")
-    cal.addNow("test2")
+    """
+    Retrun calendar view of all events
+    """
+    this_cal = Kalendar()
+    this_cal.add_now("test1")
+    this_cal.add_now("test2")
 
-    toDisplay = ""
-    for key, values in cal.getAllElements().items():
-        toDisplay += key + ":<BR>"
+    to_display = ""
+    for key, values in this_cal.get_all_elements().items():
+        to_display += key + ":<BR>"
         for val in values:
-            toDisplay += "&nbsp;&nbsp;&nbsp;&nbsp;" + val + "<BR>"
+            to_display += "&nbsp;&nbsp;&nbsp;&nbsp;" + val + "<BR>"
 
-    return toDisplay
+    return to_display
 
 
 @app.route('/today')
 def today():
-    cal = Kalendar()
-    cal.addNow("test1")
-    cal.addNow("test2")
-    return "<BR>".join(cal.getAllElements(datetime.datetime.now()))
+    """
+    Return activieties from today.
+    """
+    this_cal = Kalendar()
+    this_cal.add_now("test1")
+    this_cal.add_now("test2")
+    return "<BR>".join(this_cal.get_all_elements(datetime.datetime.now()))
+
 
 @app.route('/hello/')
 @app.route('/hello/<name>')
 def hello(name=None):
+    """
+    Render greeting with name.
+    """
     return render_template('hello.html', name=name)
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
