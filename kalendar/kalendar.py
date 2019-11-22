@@ -21,24 +21,27 @@ class Kalendar():
         """
         Return time key
         """
-        return date.strftime("%Y-%m-%d")
+        return date.strftime("%Y-%m-%d %H:%M:%S")
 
     def add_element(self, element, date):
         """
         Add element to exact date
         """
-        the_date = self.elements.setdefault(self._get_key(date), [])
-        the_date.append(element)
+        full_date = self._get_key(date)
+        the_date = full_date.split()[0]
+
+        element = [element]
 
         elem = Query()
-        results = self.db.search(elem.key == the_date)
-        for result in results:
-            if result['value'] == element:
-                break
-        else:
-            print("DEBUG: Adding new element to database: {} - {}".format(
-                the_date, element))
-            self.db.insert({'key': the_date, 'value': element})
+        results = self.db.search(elem.key.matches(the_date))
+        if results:
+            for result in results:
+                self.db.remove(doc_ids=[result.doc_id])
+                element += result["value"]
+
+        print("DEBUG: Adding new element to database: {} - {}".format(
+            full_date, element))
+        self.db.insert({'key': full_date, 'value': element})
 
     def add_now(self, element):
         """
@@ -52,9 +55,26 @@ class Kalendar():
         """
         if date is not None:
             key = self._get_key(date)
-            return self.elements.setdefault(key, [])
+            elem = Query()
+            results = self.db.search(elem.key.matches(key))
+            return results
 
-        return self.elements
+        return self.db.all()
+
+    def get_all_day_elements(self, date=None):
+        """
+        Return all elements from exact day.
+        """
+        if date is None:
+            date = datetime.datetime.now()
+
+        key = self._get_key(date)
+        key = key.split()[0]
+
+        elem = Query()
+        results = self.db.search(elem.key.matches(key))
+
+        return results
 
 
 if __name__ == "__main__":
